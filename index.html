@@ -1,17 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <!-- Open Graph / WhatsApp Sharing Tags -->
-    <meta property="og:title" content="Syndromic Clinic: Medical Education Game" />
-    <meta property="og:description" content="Test your clinical skills! Diagnose patients and master STI/RTI syndromic management guidelines in this interactive simulation." />
-    <meta property="og:image" content="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=630&q=80" />
+    <meta
+      property="og:title"
+      content="Syndromic Clinic: Medical Education Game"
+    />
+    <meta
+      property="og:description"
+      content="Test your clinical skills! Diagnose patients and master STI/RTI syndromic management guidelines in this interactive simulation."
+    />
+    <meta
+      property="og:image"
+      content="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=630&q=80"
+    />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:type" content="website" />
-    
+
     <title>Syndromic Clinic Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="importmap">
@@ -19,499 +28,1517 @@
         "imports": {
           "react": "https://esm.sh/react@18.2.0",
           "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
           "lucide-react": "https://esm.sh/lucide-react@0.263.1"
         }
       }
     </script>
     <script type="module" src="https://esm.sh/run"></script>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-      body { font-family: 'Inter', sans-serif; }
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+      }
       /* Custom Scrollbar for cleaner look */
-      ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: #f1f1f1; }
-      ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-      ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
     </style>
-</head>
-<body class="bg-slate-100 text-slate-900">
+  </head>
+  <body class="bg-slate-100 text-slate-900">
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
-        import React, { useState, useEffect } from 'react';
-        import { createRoot } from 'react-dom/client';
-        import { 
-          Stethoscope, ClipboardList, Pill, User, HeartPulse, BookOpen, 
-          AlertCircle, CheckCircle2, XCircle, Thermometer, ArrowRight, 
-          RefreshCw, Trophy, ShieldAlert, ArrowLeft, Clock, Users, 
-          GripVertical, Trash2, Timer, Flame, PlusCircle 
-        } from 'lucide-react';
+      import React, { useState, useEffect } from "react";
+      import { createRoot } from "react-dom/client";
+      import {
+        Stethoscope,
+        ClipboardList,
+        Pill,
+        User,
+        HeartPulse,
+        BookOpen,
+        AlertCircle,
+        CheckCircle2,
+        XCircle,
+        Thermometer,
+        ArrowRight,
+        RefreshCw,
+        Trophy,
+        ShieldAlert,
+        ArrowLeft,
+        Clock,
+        Users,
+        GripVertical,
+        Trash2,
+        Timer,
+        Flame,
+        PlusCircle,
+      } from "lucide-react";
 
-        // --- GAME DATA ---
+      // --- GAME DATA ---
 
-        const DRUG_INVENTORY = [
-          "Acyclovir (400mg)", "Azithromycin (1g)", "Benzathine Penicillin",
-          "Cefixime (400mg)", "Doxycycline (100mg)", "Fluconazole (150mg)",
-          "Metronidazole (400mg)", "Secnidazole (2g)"
+      const DRUG_INVENTORY = [
+        "Acyclovir (400mg)",
+        "Azithromycin (1g)",
+        "Benzathine Penicillin",
+        "Cefixime (400mg)",
+        "Doxycycline (100mg)",
+        "Fluconazole (150mg)",
+        "Metronidazole (400mg)",
+        "Secnidazole (2g)",
+      ];
+
+      const DURATION_OPTIONS = ["Single Dose", "7 Days", "14 Days", "21 Days"];
+
+      const KITS = [
+        {
+          id: "grey",
+          color: "bg-gray-400",
+          hover: "hover:bg-gray-500",
+          name: "Kit 1 (Grey)",
+          syndrome: "Urethral Discharge / Cervicitis",
+          usage: "Gonorrhea + Chlamydia",
+          components: [
+            { name: "Azithromycin (1g)", duration: "Single Dose" },
+            { name: "Cefixime (400mg)", duration: "Single Dose" },
+          ],
+        },
+        {
+          id: "green",
+          color: "bg-green-500",
+          hover: "hover:bg-green-600",
+          name: "Kit 2 (Green)",
+          syndrome: "Vaginitis",
+          usage: "Trichomonas + BV + Candida",
+          components: [
+            { name: "Secnidazole (2g)", duration: "Single Dose" },
+            { name: "Fluconazole (150mg)", duration: "Single Dose" },
+          ],
+        },
+        {
+          id: "white",
+          color: "bg-slate-100 border-2 border-gray-300",
+          hover: "hover:bg-slate-200",
+          name: "Kit 3 (White)",
+          syndrome: "GUD (Non-Herpetic)",
+          usage: "Syphilis + Chancroid",
+          components: [
+            { name: "Benzathine Penicillin", duration: "Single Dose" },
+            { name: "Azithromycin (1g)", duration: "Single Dose" },
+          ],
+        },
+        {
+          id: "blue",
+          color: "bg-blue-500",
+          hover: "hover:bg-blue-600",
+          name: "Kit 4 (Blue)",
+          syndrome: "GUD (Non-Herpetic) - Allergy",
+          usage: "Penicillin Allergy Alternative",
+          components: [
+            { name: "Doxycycline (100mg)", duration: "14 Days" },
+            { name: "Azithromycin (1g)", duration: "Single Dose" },
+          ],
+        },
+        {
+          id: "red",
+          color: "bg-red-500",
+          hover: "hover:bg-red-600",
+          name: "Kit 5 (Red)",
+          syndrome: "GUD (Herpetic)",
+          usage: "Herpes Simplex",
+          components: [{ name: "Acyclovir (400mg)", duration: "7 Days" }],
+        },
+        {
+          id: "yellow",
+          color: "bg-yellow-400",
+          hover: "hover:bg-yellow-500",
+          name: "Kit 6 (Yellow)",
+          syndrome: "Lower Abdominal Pain (PID)",
+          usage: "PID (Gonorrhea, Chlamydia, Anaerobes)",
+          components: [
+            { name: "Cefixime (400mg)", duration: "Single Dose" },
+            { name: "Metronidazole (400mg)", duration: "14 Days" },
+            { name: "Doxycycline (100mg)", duration: "14 Days" },
+          ],
+        },
+        {
+          id: "black",
+          color: "bg-gray-900",
+          hover: "hover:bg-gray-800",
+          name: "Kit 7 (Black)",
+          syndrome: "Inguinal Bubo",
+          usage: "LGV + Chancroid",
+          components: [
+            { name: "Azithromycin (1g)", duration: "Single Dose" },
+            { name: "Doxycycline (100mg)", duration: "21 Days" },
+          ],
+        },
+      ];
+
+      const ORIGINAL_PATIENTS = [
+        {
+          id: 1,
+          name: "Rahul S.",
+          age: 24,
+          gender: "Male",
+          complaint: "Burning sensation while urinating and some discharge.",
+          history: [
+            {
+              q: "Any unprotected exposure?",
+              a: "Yes, about 5 days ago with a new partner.",
+            },
+            {
+              q: "Describe the discharge.",
+              a: "It's thick and yellowish-white.",
+            },
+            { q: "Any ulcers?", a: "No ulcers, just the discharge." },
+          ],
+          exam: "Purulent urethral discharge visible on milking the urethra. No inguinal lymphadenopathy.",
+          correctKit: "grey",
+          diagnosis: "Urethral Discharge (Gonococcal/Chlamydial)",
+          explanation:
+            "UD in males is treated for both Gonorrhea and Chlamydia using Kit 1 (Grey). This requires Azithromycin (1g) Stat and Cefixime (400mg) Stat.",
+          partnerRequired: true,
+        },
+        {
+          id: 2,
+          name: "Priya M.",
+          age: 29,
+          gender: "Female",
+          complaint: "Lots of itching down there and a curd-like discharge.",
+          history: [
+            { q: "Color of discharge?", a: "White, thick, looks like curd." },
+            {
+              q: "Is there a bad smell?",
+              a: "Not really fishy, but the itching is severe.",
+            },
+            { q: "Lower abdominal pain?", a: "No pain." },
+          ],
+          exam: "Vulval erythema present. Thick curdy white discharge adhering to vaginal walls. Cervix looks normal.",
+          correctKit: "green",
+          diagnosis: "Vaginitis (Candidiasis)",
+          explanation:
+            "Curdy white discharge + Itching suggests Candida. Kit 2 (Green) is used, containing Secnidazole (for BV/Trich) and Fluconazole (for Candida), both as single doses.",
+          partnerRequired: true,
+        },
+        {
+          id: 3,
+          name: "Vikram J.",
+          age: 35,
+          gender: "Male",
+          complaint:
+            "I have a sore on my private part. It doesn't hurt though.",
+          history: [
+            { q: "How long has it been there?", a: "Noticed it 2 weeks ago." },
+            {
+              q: "Is it painful?",
+              a: "No, completely painless. Hard to touch.",
+            },
+            { q: "History of allergies?", a: "No known drug allergies." },
+          ],
+          exam: "Single, indurated, clean-based, painless ulcer on the glans. Bilateral non-tender inguinal lymphadenopathy.",
+          correctKit: "white",
+          diagnosis: "Genital Ulcer Disease - Non-Herpetic (Syphilis)",
+          explanation:
+            "Painless indurated ulcer suggests Syphilis. GUD Non-Herpetic is treated with Kit 3 (White) containing Benzathine Penicillin and Azithromycin (for Chancroid coverage), both single dose.",
+          partnerRequired: true,
+        },
+        {
+          id: 4,
+          name: "Rohan K.",
+          age: 27,
+          gender: "Male",
+          complaint: "I have a sore, but doctor, I am allergic to Penicillin.",
+          history: [
+            {
+              q: "What happens when you take Penicillin?",
+              a: "I get a severe rash and swelling.",
+            },
+            { q: "Is the sore painful?", a: "No, it's painless." },
+          ],
+          exam: "Single, indurated, clean-based, painless ulcer. Inguinal lymphadenopathy.",
+          correctKit: "blue",
+          diagnosis: "GUD Non-Herpetic (Syphilis) - Penicillin Allergy",
+          explanation:
+            "Patient has Syphilis (Painless Ulcer) but is allergic to Penicillin. Kit 4 (Blue) is the alternative, containing Doxycycline (14 days) and Azithromycin.",
+          partnerRequired: true,
+        },
+        {
+          id: 5,
+          name: "Sarah K.",
+          age: 22,
+          gender: "Female",
+          complaint: "Severe pain in lower belly and fever.",
+          history: [
+            {
+              q: "Any vaginal discharge?",
+              a: "Yes, some foul smelling discharge.",
+            },
+            { q: "Fever?", a: "Yes, feeling feverish since yesterday." },
+            { q: "Last menstrual period?", a: "Ended 4 days ago." },
+          ],
+          exam: "Temp 38.5°C. Lower abdominal tenderness. Per Speculum: Cervical motion tenderness (Chandelier sign) positive.",
+          correctKit: "yellow",
+          diagnosis: "Pelvic Inflammatory Disease (PID)",
+          explanation:
+            "Lower abdominal pain + CMT + Discharge + Fever = PID. Treat with Kit 6 (Yellow). Cefixime is Stat, but Metronidazole and Doxycycline must be continued for 14 days.",
+          partnerRequired: true,
+        },
+        {
+          id: 6,
+          name: "Amit B.",
+          age: 40,
+          gender: "Male",
+          complaint: "Painful sores appearing in clusters. They burn.",
+          history: [
+            {
+              q: "Do they come and go?",
+              a: "This is the second time. I felt tingling before they appeared.",
+            },
+            { q: "Appearance?", a: "Small water-filled blisters that popped." },
+          ],
+          exam: "Multiple small, painful, shallow ulcers with erythematous base on the shaft. Tender inguinal nodes.",
+          correctKit: "red",
+          diagnosis: "Genital Ulcer Disease - Herpetic",
+          explanation:
+            "Recurrent, painful vesicles suggest Herpes. Kit 5 (Red) contains Acyclovir which must be taken for 7 days.",
+          partnerRequired: true,
+        },
+        {
+          id: 7,
+          name: "John D.",
+          age: 28,
+          gender: "Male",
+          complaint: "Swelling in my groin area. It's getting big.",
+          history: [
+            {
+              q: "Any ulcers?",
+              a: "Had a small one a few weeks ago, it went away.",
+            },
+            { q: "Is the swelling painful?", a: "Yes, very tender." },
+          ],
+          exam: "Large, tender, fluctuating inguinal lymph node swelling (Bubo). Sign of groove present.",
+          correctKit: "black",
+          diagnosis: "Inguinal Bubo (LGV/Chancroid)",
+          explanation:
+            "Inguinal Bubo requires Kit 7 (Black). It contains Azithromycin (Stat) and Doxycycline which must be taken for 21 days for LGV.",
+          partnerRequired: true,
+        },
+        {
+          id: 8,
+          name: "Anjali P.",
+          age: 25,
+          gender: "Female",
+          complaint: "Excessive vaginal discharge.",
+          history: [
+            { q: "Is there itching?", a: "No itching." },
+            { q: "Lower abdominal pain?", a: "No." },
+          ],
+          exam: "Per Speculum: Mucopurulent cervical discharge. Cervical os is inflamed (Cervicitis).",
+          correctKit: "grey",
+          diagnosis: "Cervicitis (Gonococcal/Chlamydial)",
+          explanation:
+            "Cervical discharge indicates Cervicitis, treated same as Urethral Discharge. Kit 1 (Grey) with Azithromycin + Cefixime.",
+          partnerRequired: true,
+        },
+        {
+          id: 9,
+          name: "Sunita D.",
+          age: 30,
+          gender: "Female",
+          complaint: "Pain in lower abdomen for 3 days.",
+          history: [
+            { q: "Fever?", a: "Mild fever." },
+            { q: "Discharge?", a: "Yes, slightly foul smelling." },
+          ],
+          exam: "Bilateral adnexal tenderness. Cervical motion tenderness present.",
+          correctKit: "yellow",
+          diagnosis: "Pelvic Inflammatory Disease (PID)",
+          explanation:
+            "Classic PID presentation. Needs Kit 6 (Yellow) for 14 days coverage of Gonorrhea, Chlamydia, and Anaerobes.",
+          partnerRequired: true,
+        },
+      ];
+
+      // --- MAIN COMPONENT ---
+
+      function SyndromicGame() {
+        const [gameState, setGameState] = useState("menu");
+        const [selectionStep, setSelectionStep] = useState("kit");
+        const [gamePatients, setGamePatients] = useState([]);
+        const [currentPatientIndex, setCurrentPatientIndex] = useState(0);
+        const [score, setScore] = useState(0);
+        const [streak, setStreak] = useState(0);
+        const [streakBonusAwarded, setStreakBonusAwarded] = useState(false);
+        const [timeLeft, setTimeLeft] = useState(60);
+        const TIME_LIMIT = 60;
+        const [historyRevealed, setHistoryRevealed] = useState([]);
+        const [examRevealed, setExamRevealed] = useState(false);
+        const [selectedKit, setSelectedKit] = useState(null);
+        const [trayItems, setTrayItems] = useState([]);
+        const [partnerMgmt, setPartnerMgmt] = useState(false);
+        const [feedback, setFeedback] = useState(null);
+        const [showReference, setShowReference] = useState(false);
+        const [activeModal, setActiveModal] = useState(null);
+        const [formData, setFormData] = useState({
+          name: "",
+          email: "",
+          password: "",
+          number: "",
+          address: "",
+          profession: "",
+          institution: "",
+        });
+
+        const currentPatient = gamePatients[currentPatientIndex];
+        const PLANS = [
+          { id: 1, title: "1 Month", price: 149, displayPrice: "₹149" },
+          { id: 2, title: "6 Months", price: 749, displayPrice: "₹749" },
+          { id: 3, title: "1 Year", price: 1499, displayPrice: "₹1499" },
         ];
 
-        const DURATION_OPTIONS = ['Single Dose', '7 Days', '14 Days', '21 Days'];
+        useEffect(() => {
+          let interval = null;
+          if (gameState === "playing" && timeLeft > 0) {
+            interval = setInterval(() => {
+              setTimeLeft((prev) => prev - 1);
+            }, 1000);
+          }
+          return () => {
+            if (interval) clearInterval(interval);
+          };
+        }, [gameState, timeLeft]);
 
-        const KITS = [
-          { 
-            id: 'grey', color: 'bg-gray-400', hover: 'hover:bg-gray-500', name: 'Kit 1 (Grey)', 
-            syndrome: 'Urethral Discharge / Cervicitis', usage: 'Gonorrhea + Chlamydia',
-            components: [{ name: 'Azithromycin (1g)', duration: 'Single Dose' }, { name: 'Cefixime (400mg)', duration: 'Single Dose' }]
-          },
-          { 
-            id: 'green', color: 'bg-green-500', hover: 'hover:bg-green-600', name: 'Kit 2 (Green)', 
-            syndrome: 'Vaginitis', usage: 'Trichomonas + BV + Candida',
-            components: [{ name: 'Secnidazole (2g)', duration: 'Single Dose' }, { name: 'Fluconazole (150mg)', duration: 'Single Dose' }]
-          },
-          { 
-            id: 'white', color: 'bg-slate-100 border-2 border-gray-300', hover: 'hover:bg-slate-200', name: 'Kit 3 (White)', 
-            syndrome: 'GUD (Non-Herpetic)', usage: 'Syphilis + Chancroid',
-            components: [{ name: 'Benzathine Penicillin', duration: 'Single Dose' }, { name: 'Azithromycin (1g)', duration: 'Single Dose' }]
-          },
-          { 
-            id: 'blue', color: 'bg-blue-500', hover: 'hover:bg-blue-600', name: 'Kit 4 (Blue)', 
-            syndrome: 'GUD (Non-Herpetic) - Allergy', usage: 'Penicillin Allergy Alternative',
-            components: [{ name: 'Doxycycline (100mg)', duration: '14 Days' }, { name: 'Azithromycin (1g)', duration: 'Single Dose' }]
-          },
-          { 
-            id: 'red', color: 'bg-red-500', hover: 'hover:bg-red-600', name: 'Kit 5 (Red)', 
-            syndrome: 'GUD (Herpetic)', usage: 'Herpes Simplex',
-            components: [{ name: 'Acyclovir (400mg)', duration: '7 Days' }]
-          },
-          { 
-            id: 'yellow', color: 'bg-yellow-400', hover: 'hover:bg-yellow-500', name: 'Kit 6 (Yellow)', 
-            syndrome: 'Lower Abdominal Pain (PID)', usage: 'PID (Gonorrhea, Chlamydia, Anaerobes)',
-            components: [{ name: 'Cefixime (400mg)', duration: 'Single Dose' }, { name: 'Metronidazole (400mg)', duration: '14 Days' }, { name: 'Doxycycline (100mg)', duration: '14 Days' }]
-          },
-          { 
-            id: 'black', color: 'bg-gray-900', hover: 'hover:bg-gray-800', name: 'Kit 7 (Black)', 
-            syndrome: 'Inguinal Bubo', usage: 'LGV + Chancroid',
-            components: [{ name: 'Azithromycin (1g)', duration: 'Single Dose' }, { name: 'Doxycycline (100mg)', duration: '21 Days' }]
-          },
-        ];
+        useEffect(() => {
+          if (trayItems.length === 2) {
+            console.log("sdfdfs");
 
-        const ORIGINAL_PATIENTS = [
-          { id: 1, name: "Rahul S.", age: 24, gender: "Male", complaint: "Burning sensation while urinating and some discharge.", history: [{ q: "Any unprotected exposure?", a: "Yes, about 5 days ago with a new partner." }, { q: "Describe the discharge.", a: "It's thick and yellowish-white." }, { q: "Any ulcers?", a: "No ulcers, just the discharge." }], exam: "Purulent urethral discharge visible on milking the urethra. No inguinal lymphadenopathy.", correctKit: 'grey', diagnosis: "Urethral Discharge (Gonococcal/Chlamydial)", explanation: "UD in males is treated for both Gonorrhea and Chlamydia using Kit 1 (Grey). This requires Azithromycin (1g) Stat and Cefixime (400mg) Stat.", partnerRequired: true },
-          { id: 2, name: "Priya M.", age: 29, gender: "Female", complaint: "Lots of itching down there and a curd-like discharge.", history: [{ q: "Color of discharge?", a: "White, thick, looks like curd." }, { q: "Is there a bad smell?", a: "Not really fishy, but the itching is severe." }, { q: "Lower abdominal pain?", a: "No pain." }], exam: "Vulval erythema present. Thick curdy white discharge adhering to vaginal walls. Cervix looks normal.", correctKit: 'green', diagnosis: "Vaginitis (Candidiasis)", explanation: "Curdy white discharge + Itching suggests Candida. Kit 2 (Green) is used, containing Secnidazole (for BV/Trich) and Fluconazole (for Candida), both as single doses.", partnerRequired: true },
-          { id: 3, name: "Vikram J.", age: 35, gender: "Male", complaint: "I have a sore on my private part. It doesn't hurt though.", history: [{ q: "How long has it been there?", a: "Noticed it 2 weeks ago." }, { q: "Is it painful?", a: "No, completely painless. Hard to touch." }, { q: "History of allergies?", a: "No known drug allergies." }], exam: "Single, indurated, clean-based, painless ulcer on the glans. Bilateral non-tender inguinal lymphadenopathy.", correctKit: 'white', diagnosis: "Genital Ulcer Disease - Non-Herpetic (Syphilis)", explanation: "Painless indurated ulcer suggests Syphilis. GUD Non-Herpetic is treated with Kit 3 (White) containing Benzathine Penicillin and Azithromycin (for Chancroid coverage), both single dose.", partnerRequired: true },
-          { id: 4, name: "Rohan K.", age: 27, gender: "Male", complaint: "I have a sore, but doctor, I am allergic to Penicillin.", history: [{ q: "What happens when you take Penicillin?", a: "I get a severe rash and swelling." }, { q: "Is the sore painful?", a: "No, it's painless." }], exam: "Single, indurated, clean-based, painless ulcer. Inguinal lymphadenopathy.", correctKit: 'blue', diagnosis: "GUD Non-Herpetic (Syphilis) - Penicillin Allergy", explanation: "Patient has Syphilis (Painless Ulcer) but is allergic to Penicillin. Kit 4 (Blue) is the alternative, containing Doxycycline (14 days) and Azithromycin.", partnerRequired: true },
-          { id: 5, name: "Sarah K.", age: 22, gender: "Female", complaint: "Severe pain in lower belly and fever.", history: [{ q: "Any vaginal discharge?", a: "Yes, some foul smelling discharge." }, { q: "Fever?", a: "Yes, feeling feverish since yesterday." }, { q: "Last menstrual period?", a: "Ended 4 days ago." }], exam: "Temp 38.5°C. Lower abdominal tenderness. Per Speculum: Cervical motion tenderness (Chandelier sign) positive.", correctKit: 'yellow', diagnosis: "Pelvic Inflammatory Disease (PID)", explanation: "Lower abdominal pain + CMT + Discharge + Fever = PID. Treat with Kit 6 (Yellow). Cefixime is Stat, but Metronidazole and Doxycycline must be continued for 14 days.", partnerRequired: true },
-          { id: 6, name: "Amit B.", age: 40, gender: "Male", complaint: "Painful sores appearing in clusters. They burn.", history: [{ q: "Do they come and go?", a: "This is the second time. I felt tingling before they appeared." }, { q: "Appearance?", a: "Small water-filled blisters that popped." }], exam: "Multiple small, painful, shallow ulcers with erythematous base on the shaft. Tender inguinal nodes.", correctKit: 'red', diagnosis: "Genital Ulcer Disease - Herpetic", explanation: "Recurrent, painful vesicles suggest Herpes. Kit 5 (Red) contains Acyclovir which must be taken for 7 days.", partnerRequired: true },
-          { id: 7, name: "John D.", age: 28, gender: "Male", complaint: "Swelling in my groin area. It's getting big.", history: [{ q: "Any ulcers?", a: "Had a small one a few weeks ago, it went away." }, { q: "Is the swelling painful?", a: "Yes, very tender." }], exam: "Large, tender, fluctuating inguinal lymph node swelling (Bubo). Sign of groove present.", correctKit: 'black', diagnosis: "Inguinal Bubo (LGV/Chancroid)", explanation: "Inguinal Bubo requires Kit 7 (Black). It contains Azithromycin (Stat) and Doxycycline which must be taken for 21 days for LGV.", partnerRequired: true },
-          { id: 8, name: "Anjali P.", age: 25, gender: "Female", complaint: "Excessive vaginal discharge.", history: [{ q: "Is there itching?", a: "No itching." }, { q: "Lower abdominal pain?", a: "No." }], exam: "Per Speculum: Mucopurulent cervical discharge. Cervical os is inflamed (Cervicitis).", correctKit: 'grey', diagnosis: "Cervicitis (Gonococcal/Chlamydial)", explanation: "Cervical discharge indicates Cervicitis, treated same as Urethral Discharge. Kit 1 (Grey) with Azithromycin + Cefixime.", partnerRequired: true },
-          { id: 9, name: "Sunita D.", age: 30, gender: "Female", complaint: "Pain in lower abdomen for 3 days.", history: [{ q: "Fever?", a: "Mild fever." }, { q: "Discharge?", a: "Yes, slightly foul smelling." }], exam: "Bilateral adnexal tenderness. Cervical motion tenderness present.", correctKit: 'yellow', diagnosis: "Pelvic Inflammatory Disease (PID)", explanation: "Classic PID presentation. Needs Kit 6 (Yellow) for 14 days coverage of Gonorrhea, Chlamydia, and Anaerobes.", partnerRequired: true }
-        ];
+            setActiveModal("SUBSCRIBE");
+          }
+        }, [trayItems]);
 
-        // --- MAIN COMPONENT ---
+        const startGame = () => {
+          const shuffled = [...ORIGINAL_PATIENTS].sort(
+            () => Math.random() - 0.5,
+          );
+          setGamePatients(shuffled);
+          setCurrentPatientIndex(0);
+          setScore(0);
+          setStreak(0);
+          setStreakBonusAwarded(false);
+          setGameState("playing");
+          resetCase();
+        };
 
-        function SyndromicGame() {
-          const [gameState, setGameState] = useState('menu');
-          const [selectionStep, setSelectionStep] = useState('kit');
-          const [gamePatients, setGamePatients] = useState([]);
-          const [currentPatientIndex, setCurrentPatientIndex] = useState(0);
-          const [score, setScore] = useState(0);
-          const [streak, setStreak] = useState(0);
-          const [streakBonusAwarded, setStreakBonusAwarded] = useState(false);
-          const [timeLeft, setTimeLeft] = useState(60);
-          const TIME_LIMIT = 60;
-          const [historyRevealed, setHistoryRevealed] = useState([]);
-          const [examRevealed, setExamRevealed] = useState(false);
-          const [selectedKit, setSelectedKit] = useState(null);
-          const [trayItems, setTrayItems] = useState([]);
-          const [partnerMgmt, setPartnerMgmt] = useState(false);
-          const [feedback, setFeedback] = useState(null);
-          const [showReference, setShowReference] = useState(false);
-          
-          const currentPatient = gamePatients[currentPatientIndex];
+        const resetCase = () => {
+          setHistoryRevealed([]);
+          setExamRevealed(false);
+          setSelectedKit(null);
+          setTrayItems([]);
+          setPartnerMgmt(false);
+          setFeedback(null);
+          setShowReference(false);
+          setSelectionStep("kit");
+          setTimeLeft(TIME_LIMIT);
+        };
 
-          useEffect(() => {
-            let interval = null;
-            if (gameState === 'playing' && timeLeft > 0) {
-              interval = setInterval(() => {
-                setTimeLeft((prev) => prev - 1);
-              }, 1000);
+        const handleRevealHistory = (index) => {
+          if (!historyRevealed.includes(index)) {
+            setHistoryRevealed([...historyRevealed, index]);
+          }
+        };
+
+        const handleKitSelect = (kit) => {
+          setSelectedKit(kit);
+          setSelectionStep("compose");
+        };
+
+        // Drag & Drop + Click Handlers
+        const handleDragStart = (e, drugName) => {
+          e.dataTransfer.setData("drugName", drugName);
+        };
+        const handleDragOver = (e) => {
+          e.preventDefault();
+        };
+        const handleDrop = (e) => {
+          e.preventDefault();
+          const drugName = e.dataTransfer.getData("drugName");
+          if (drugName) addDrugToTray(drugName);
+        };
+        const addDrugToTray = (drugName) => {
+          if (!trayItems.find((item) => item.name === drugName)) {
+            setTrayItems((prev) => [
+              ...prev,
+              { id: Date.now(), name: drugName, duration: "Single Dose" },
+            ]);
+          }
+        };
+
+        const removeDrug = (id) => {
+          setTrayItems((prev) => prev.filter((item) => item.id !== id));
+        };
+
+        const updateDuration = (id, newDuration) => {
+          setTrayItems((prev) =>
+            prev.map((item) =>
+              item.id === id ? { ...item, duration: newDuration } : item,
+            ),
+          );
+        };
+
+        const handleSubmitPrescription = () => {
+          evaluate(selectedKit, trayItems, partnerMgmt);
+        };
+
+        const evaluate = (kit, userTray, partner) => {
+          const correctKitData = KITS.find(
+            (k) => k.id === currentPatient.correctKit,
+          );
+          const isKitCorrect = kit.id === currentPatient.correctKit;
+
+          const requiredComponents = correctKitData.components;
+          let isComponentsCorrect = true;
+          if (userTray.length !== requiredComponents.length) {
+            isComponentsCorrect = false;
+          } else {
+            requiredComponents.forEach((req) => {
+              const match = userTray.find(
+                (userItem) =>
+                  userItem.name === req.name &&
+                  userItem.duration === req.duration,
+              );
+              if (!match) isComponentsCorrect = false;
+            });
+          }
+
+          const isPartnerCorrect = partner === currentPatient.partnerRequired;
+          const isTotalSuccess =
+            isKitCorrect && isComponentsCorrect && isPartnerCorrect;
+
+          let newStreak = streak;
+          let streakBonus = 0;
+          if (isTotalSuccess) {
+            newStreak = streak + 1;
+            if (newStreak === 3 && !streakBonusAwarded) {
+              streakBonus = 10;
+              setStreakBonusAwarded(true);
             }
-            return () => { if (interval) clearInterval(interval); };
-          }, [gameState, timeLeft]);
+          } else {
+            newStreak = 0;
+          }
+          setStreak(newStreak);
 
-          const startGame = () => {
-            const shuffled = [...ORIGINAL_PATIENTS].sort(() => Math.random() - 0.5);
-            setGamePatients(shuffled);
-            setCurrentPatientIndex(0);
-            setScore(0);
-            setStreak(0);
-            setStreakBonusAwarded(false);
-            setGameState('playing');
+          const hasTimeBonus = isTotalSuccess && timeLeft > 0;
+          const timeBonus = hasTimeBonus ? 10 : 0;
+
+          let message = "Management Plan Completed";
+          let subMessage = "Let's review your decisions.";
+          let finalScoreAdd = 0;
+
+          if (isTotalSuccess) {
+            message = "Perfect Clinical Management!";
+            subMessage =
+              "Correct Kit, Drug selection, Durations, and Partner Protocol.";
+            finalScoreAdd = 100 + timeBonus + streakBonus;
+          } else {
+            if (!isKitCorrect)
+              subMessage = "The primary kit selection was incorrect.";
+            else if (!isComponentsCorrect)
+              subMessage =
+                "Prescription errors (Wrong drugs or incorrect durations).";
+            else if (!isPartnerCorrect)
+              subMessage = "You missed the Partner Management protocol.";
+            if (isKitCorrect) finalScoreAdd += 20;
+            if (isComponentsCorrect) finalScoreAdd += 30;
+            if (isPartnerCorrect) finalScoreAdd += 10;
+          }
+
+          setScore((s) => s + finalScoreAdd);
+          setFeedback({
+            isCorrect: isTotalSuccess,
+            isKitCorrect,
+            isComponentsCorrect,
+            isPartnerCorrect,
+            message,
+            subMessage,
+            details: currentPatient.explanation,
+            diagnosis: currentPatient.diagnosis,
+            correctComponents: requiredComponents,
+            timeBonus,
+            streakBonus,
+            currentStreak: newStreak,
+          });
+          setGameState("feedback");
+        };
+
+        const nextCase = () => {
+          if (currentPatientIndex + 1 < gamePatients.length) {
+            setCurrentPatientIndex((p) => p + 1);
             resetCase();
-          };
+            setGameState("playing");
+          } else {
+            setGameState("summary");
+          }
+        };
 
-          const resetCase = () => {
-            setHistoryRevealed([]);
-            setExamRevealed(false);
-            setSelectedKit(null);
-            setTrayItems([]);
-            setPartnerMgmt(false);
-            setFeedback(null);
-            setShowReference(false);
-            setSelectionStep('kit');
-            setTimeLeft(TIME_LIMIT);
-          };
+        const cancelSelection = () => {
+          setSelectionStep("kit");
+          setSelectedKit(null);
+          setTrayItems([]);
+        };
 
-          const handleRevealHistory = (index) => {
-            if (!historyRevealed.includes(index)) {
-              setHistoryRevealed([...historyRevealed, index]);
-            }
-          };
-
-          const handleKitSelect = (kit) => {
-            setSelectedKit(kit);
-            setSelectionStep('compose');
-          };
-
-          // Drag & Drop + Click Handlers
-          const handleDragStart = (e, drugName) => { e.dataTransfer.setData("drugName", drugName); };
-          const handleDragOver = (e) => { e.preventDefault(); };
-          const handleDrop = (e) => {
-            e.preventDefault();
-            const drugName = e.dataTransfer.getData("drugName");
-            if (drugName) addDrugToTray(drugName);
-          };
-          const addDrugToTray = (drugName) => {
-            if (!trayItems.find(item => item.name === drugName)) {
-              setTrayItems(prev => [...prev, { id: Date.now(), name: drugName, duration: 'Single Dose' }]);
-            }
-          };
-
-          const removeDrug = (id) => {
-            setTrayItems(prev => prev.filter(item => item.id !== id));
-          };
-
-          const updateDuration = (id, newDuration) => {
-            setTrayItems(prev => prev.map(item => item.id === id ? { ...item, duration: newDuration } : item));
-          };
-
-          const handleSubmitPrescription = () => {
-            evaluate(selectedKit, trayItems, partnerMgmt);
-          };
-
-          const evaluate = (kit, userTray, partner) => {
-            const correctKitData = KITS.find(k => k.id === currentPatient.correctKit);
-            const isKitCorrect = kit.id === currentPatient.correctKit;
-            
-            const requiredComponents = correctKitData.components;
-            let isComponentsCorrect = true;
-            if (userTray.length !== requiredComponents.length) {
-              isComponentsCorrect = false;
-            } else {
-              requiredComponents.forEach(req => {
-                const match = userTray.find(userItem => userItem.name === req.name && userItem.duration === req.duration);
-                if (!match) isComponentsCorrect = false;
-              });
-            }
-
-            const isPartnerCorrect = partner === currentPatient.partnerRequired;
-            const isTotalSuccess = isKitCorrect && isComponentsCorrect && isPartnerCorrect;
-            
-            let newStreak = streak;
-            let streakBonus = 0;
-            if (isTotalSuccess) {
-                newStreak = streak + 1;
-                if (newStreak === 3 && !streakBonusAwarded) {
-                    streakBonus = 10;
-                    setStreakBonusAwarded(true);
-                }
-            } else {
-                newStreak = 0;
-            }
-            setStreak(newStreak);
-
-            const hasTimeBonus = isTotalSuccess && timeLeft > 0;
-            const timeBonus = hasTimeBonus ? 10 : 0;
-
-            let message = "Management Plan Completed";
-            let subMessage = "Let's review your decisions.";
-            let finalScoreAdd = 0;
-
-            if (isTotalSuccess) {
-                message = "Perfect Clinical Management!";
-                subMessage = "Correct Kit, Drug selection, Durations, and Partner Protocol.";
-                finalScoreAdd = 100 + timeBonus + streakBonus;
-            } else {
-                if (!isKitCorrect) subMessage = "The primary kit selection was incorrect.";
-                else if (!isComponentsCorrect) subMessage = "Prescription errors (Wrong drugs or incorrect durations).";
-                else if (!isPartnerCorrect) subMessage = "You missed the Partner Management protocol.";
-                if (isKitCorrect) finalScoreAdd += 20;
-                if (isComponentsCorrect) finalScoreAdd += 30;
-                if (isPartnerCorrect) finalScoreAdd += 10;
-            }
-
-            setScore(s => s + finalScoreAdd);
-            setFeedback({ isCorrect: isTotalSuccess, isKitCorrect, isComponentsCorrect, isPartnerCorrect, message, subMessage, details: currentPatient.explanation, diagnosis: currentPatient.diagnosis, correctComponents: requiredComponents, timeBonus, streakBonus, currentStreak: newStreak });
-            setGameState('feedback');
-          };
-
-          const nextCase = () => {
-            if (currentPatientIndex + 1 < gamePatients.length) {
-              setCurrentPatientIndex(p => p + 1);
-              resetCase();
-              setGameState('playing');
-            } else {
-              setGameState('summary');
-            }
-          };
-
-          const cancelSelection = () => {
-            setSelectionStep('kit');
-            setSelectedKit(null);
-            setTrayItems([]);
-          };
-
-          // --- RENDER HELPERS ---
-          const ReferenceCard = () => (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-              <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden">
-                <div className="bg-blue-800 text-white p-4 flex justify-between items-center">
-                  <div className="flex items-center gap-2"><BookOpen size={24} /><h2 className="text-xl font-bold">Syndromic Management Guidelines</h2></div>
-                  <button onClick={() => setShowReference(false)} className="hover:bg-blue-700 p-2 rounded-full"><XCircle size={24} /></button>
+        // --- RENDER HELPERS ---
+        const ReferenceCard = () => (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden">
+              <div className="bg-blue-800 text-white p-4 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <BookOpen size={24} />
+                  <h2 className="text-xl font-bold">
+                    Syndromic Management Guidelines
+                  </h2>
                 </div>
-                <div className="overflow-y-auto p-6 bg-slate-50">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {KITS.map(kit => (
-                      <div key={kit.id} className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition">
-                        <div className={`h-2 w-full mb-3 rounded-full ${kit.color}`}></div>
-                        <h3 className="font-bold text-lg text-gray-800">{kit.name}</h3>
-                        <p className="text-sm font-semibold text-blue-600 mb-1">{kit.syndrome}</p>
-                        <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded space-y-1">
-                          {kit.components.map((c, i) => (<div key={i} className="flex justify-between"><span>{c.name}</span><span className="text-gray-400 font-mono text-[10px]">{c.duration}</span></div>))}
-                        </div>
-                        <p className="text-xs mt-2 text-gray-600 italic">Target: {kit.usage}</p>
+                <button
+                  onClick={() => setShowReference(false)}
+                  className="hover:bg-blue-700 p-2 rounded-full"
+                >
+                  <XCircle size={24} />
+                </button>
+              </div>
+              <div className="overflow-y-auto p-6 bg-slate-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {KITS.map((kit) => (
+                    <div
+                      key={kit.id}
+                      className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition"
+                    >
+                      <div
+                        className={`h-2 w-full mb-3 rounded-full ${kit.color}`}
+                      ></div>
+                      <h3 className="font-bold text-lg text-gray-800">
+                        {kit.name}
+                      </h3>
+                      <p className="text-sm font-semibold text-blue-600 mb-1">
+                        {kit.syndrome}
+                      </p>
+                      <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded space-y-1">
+                        {kit.components.map((c, i) => (
+                          <div key={i} className="flex justify-between">
+                            <span>{c.name}</span>
+                            <span className="text-gray-400 font-mono text-[10px]">
+                              {c.duration}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="font-bold text-blue-800 mb-2">The 4 C's of Management</h3>
-                    <ul className="list-disc list-inside text-sm text-blue-900 space-y-1">
-                      <li><strong>Counseling</strong></li><li><strong>Compliance</strong></li><li><strong>Condoms</strong></li><li><strong>Contact Tracing</strong></li>
-                    </ul>
-                  </div>
+                      <p className="text-xs mt-2 text-gray-600 italic">
+                        Target: {kit.usage}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="font-bold text-blue-800 mb-2">
+                    The 4 C's of Management
+                  </h3>
+                  <ul className="list-disc list-inside text-sm text-blue-900 space-y-1">
+                    <li>
+                      <strong>Counseling</strong>
+                    </li>
+                    <li>
+                      <strong>Compliance</strong>
+                    </li>
+                    <li>
+                      <strong>Condoms</strong>
+                    </li>
+                    <li>
+                      <strong>Contact Tracing</strong>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
-          );
+          </div>
+        );
 
-          if (gameState === 'menu') {
-            return (
-              <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans">
-                <div className="bg-white max-w-2xl w-full rounded-2xl shadow-xl overflow-hidden">
-                  <div className="bg-blue-600 p-8 text-center">
-                    <div className="mx-auto bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mb-4"><HeartPulse size={40} className="text-white" /></div>
-                    <h1 className="text-4xl font-bold text-white mb-2">Syndromic Clinic</h1>
-                    <p className="text-blue-100 text-lg">Master STI/RTI Management Protocols</p>
-                  </div>
-                  <div className="p-8">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">Mission Briefing</h3>
-                    <p className="text-gray-600 mb-6">You are the resident doctor. For each patient, follow the protocol:</p>
-                    <ul className="space-y-3 mb-6 text-gray-700">
-                      <li className="flex items-center gap-3"><ClipboardList className="text-blue-500" /> <span>1. History & Examination</span></li>
-                      <li className="flex items-center gap-3"><Pill className="text-blue-500" /> <span>2. Select <strong>Kit</strong></span></li>
-                      <li className="flex items-center gap-3"><Clock className="text-blue-500" /> <span>3. Compose <strong>Prescription</strong></span></li>
-                    </ul>
-                    <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 mb-6 text-sm">
-                        <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-3"><span className="font-bold text-slate-700 uppercase tracking-wide">Total Attainable Score</span><span className="font-black text-blue-600 text-2xl">1000 XP</span></div>
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-slate-600">
-                            <div className="col-span-2 font-bold text-slate-800">Scoring Rules (Per Case):</div>
-                            <div className="flex justify-between items-center"><span>Perfect Diagnosis</span> <span className="font-bold text-green-600">100 XP</span></div>
-                            <div className="flex justify-between items-center"><span>Speed Bonus (&lt; 60s)</span> <span className="font-bold text-yellow-600">+10 XP</span></div>
-                            <div className="flex justify-between items-center"><span>Streak Bonus (3 in a row)</span> <span className="font-bold text-orange-600">+10 XP (Once)</span></div>
-                            <div className="col-span-2 mt-2 font-bold text-slate-800 border-t border-slate-200 pt-2 text-xs uppercase tracking-wider">Partial Credit</div>
-                            <div className="flex justify-between items-center"><span>Correct Kit</span> <span>20 XP</span></div>
-                            <div className="flex justify-between items-center"><span>Correct Rx</span> <span>30 XP</span></div>
-                            <div className="flex justify-between items-center"><span>Partner Mgmt</span> <span>10 XP</span></div>
-                        </div>
-                    </div>
-                    <button onClick={startGame} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xl transition flex items-center justify-center gap-2">Start Shift <ArrowRight /></button>
-                  </div>
-                </div>
-              </div>
-            );
-          }
+        {
+          activeModal === "SUBSCRIBE" && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+              <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl transform transition-all duration-200">
+                <h2 className="text-xl font-semibold text-amber-950">
+                  Access Restricted! 🚫
+                </h2>
 
-          if (gameState === 'summary') {
-            return (
-              <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-                <div className="bg-white max-w-lg w-full rounded-2xl shadow-xl p-8 text-center">
-                  <Trophy size={64} className="mx-auto text-yellow-500 mb-6" />
-                  <h2 className="text-3xl font-bold text-gray-800 mb-2">Shift Complete!</h2>
-                  <p className="text-gray-600 mb-6">You treated {gamePatients.length} patients.</p>
-                  <div className="bg-slate-50 rounded-xl p-6 mb-8">
-                    <span className="text-gray-500 uppercase text-sm font-bold tracking-wider">Final Score</span>
-                    <div className="text-5xl font-black text-blue-600 mt-2">{score} <span className="text-xl text-gray-400">XP</span></div>
-                  </div>
-                  <button onClick={() => setGameState('menu')} className="w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"><RefreshCw size={18} /> Return to Menu</button>
-                </div>
-              </div>
-            );
-          }
+                <p className="mt-2 text-amber-900">
+                  To play ahead, you have to subscribe to the software.
+                </p>
 
-          return (
-            <div className="min-h-screen bg-slate-100 p-2 md:p-6 flex flex-col">
-              {showReference && <ReferenceCard />}
-              <header className="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b border-gray-200 sticky top-0 z-40 gap-4 md:gap-0">
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                  <div className="bg-blue-100 p-2 rounded-lg"><User className="text-blue-600" /></div>
-                  <div>
-                    <h2 className="font-bold text-gray-800">Case {currentPatientIndex + 1}/{gamePatients.length}</h2>
-                    <div className="flex items-center gap-2">
-                        <p className="text-xs text-gray-500">Dr. Student</p>
-                        {gameState === 'playing' && streak > 0 && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><Flame size={10} /> Streak: {streak}</span>}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                   {gameState === 'playing' && (
-                     <div className={`flex items-center gap-2 px-3 py-1 rounded-lg border font-mono font-bold w-20 justify-center transition-all ${timeLeft < 10 ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                       <Timer size={14} />
-                       <span>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
-                     </div>
-                   )}
-                   <button onClick={() => setShowReference(true)} className="text-blue-600 font-semibold text-sm flex items-center gap-1 hover:bg-blue-50 px-3 py-1 rounded-lg transition"><BookOpen size={16} /> Ref</button>
-                  <div className="bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-100"><span className="font-bold text-yellow-700">{score} XP</span></div>
-                </div>
-              </header>
+                <div className="mt-6 flex gap-3">
+                  <button className="flex-1 rounded-lg bg-amber-900 py-2.5 text-white transition hover:bg-amber-950">
+                    Subscribe
+                  </button>
 
-              <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
-                <div className="lg:col-span-5 space-y-6">
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="bg-slate-800 text-white p-4 flex justify-between items-start">
-                      <div className="flex gap-4">
-                        <div className="w-16 h-16 bg-slate-600 rounded-full flex items-center justify-center text-2xl font-bold">{currentPatient.name[0]}</div>
-                        <div><h3 className="text-xl font-bold">{currentPatient.name}</h3><div className="flex gap-3 text-sm text-slate-300 mt-1"><span>{currentPatient.age} yrs</span><span>•</span><span>{currentPatient.gender}</span></div></div>
-                      </div>
-                      <Thermometer className="text-slate-400" />
-                    </div>
-                    <div className="p-6"><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Chief Complaint</h4><p className="text-lg text-gray-800 font-medium bg-red-50 p-3 rounded-lg border-l-4 border-red-400 italic">"{currentPatient.complaint}"</p></div>
-                  </div>
-
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-4"><ClipboardList className="text-blue-600" /><h3 className="font-bold text-gray-800">History Taking</h3></div>
-                    <div className="space-y-3">
-                      {currentPatient.history.map((item, idx) => (
-                        <div key={idx} className="transition-all">
-                          <button onClick={() => handleRevealHistory(idx)} disabled={gameState !== 'playing' && !historyRevealed.includes(idx)} className={`w-full text-left p-3 rounded-lg border transition flex justify-between items-center ${historyRevealed.includes(idx) ? 'bg-blue-50 border-blue-200 text-blue-900' : 'bg-white border-gray-200 text-gray-600 hover:border-blue-300'}`}><span className="font-medium">Q: {item.q}</span>{!historyRevealed.includes(idx) && <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">Ask</span>}</button>
-                          {historyRevealed.includes(idx) && <div className="ml-4 mt-2 p-3 bg-gray-50 border-l-2 border-gray-300 text-gray-700 italic text-sm">" {item.a} "</div>}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-8 border-t pt-6">
-                      <div className="flex items-center gap-2 mb-4"><Stethoscope className="text-purple-600" /><h3 className="font-bold text-gray-800">Physical Examination</h3></div>
-                      {!examRevealed ? (
-                        <button onClick={() => setExamRevealed(true)} className="w-full py-4 border-2 border-dashed border-purple-200 rounded-xl text-purple-600 font-bold hover:bg-purple-50 transition">Perform Examination</button>
-                      ) : (
-                        <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 text-purple-900"><div className="flex gap-3"><AlertCircle className="shrink-0 mt-1" size={20} /><div><span className="font-bold block mb-1">Findings:</span>{currentPatient.exam}</div></div></div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="lg:col-span-7 flex flex-col h-full min-h-[500px]">
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden">
-                    <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between"><div className="flex items-center gap-2"><Pill className="text-green-600" /><h3 className="font-bold text-gray-800">Treatment Plan</h3></div><span className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">{gameState === 'playing' ? (selectionStep === 'kit' ? 'Step 1: Select Kit' : 'Step 2: Compose Rx') : 'Review'}</span></div>
-                    <div className="flex-1 overflow-hidden relative">
-                      {gameState === 'playing' && selectionStep === 'kit' && (
-                        <div className="p-4 overflow-y-auto h-full space-y-2">
-                          <p className="text-sm text-gray-500 mb-2">Select the appropriate Color-Coded Kit:</p>
-                          <div className="grid grid-cols-1 gap-2">
-                            {KITS.map(kit => (
-                              <button key={kit.id} onClick={() => handleKitSelect(kit)} className="w-full group flex items-center p-3 rounded-xl border border-gray-200 hover:border-gray-400 hover:shadow-md transition bg-white text-left">
-                                <div className={`w-12 h-12 shrink-0 rounded-full ${kit.color} ${kit.hover} shadow-sm mr-4 flex items-center justify-center text-white font-bold text-xs`}>KIT</div>
-                                <div className="flex-1"><div className="font-bold text-gray-800 group-hover:text-blue-700">{kit.name}</div><div className="text-xs text-gray-500">{kit.syndrome}</div></div><ArrowRight size={16} className="text-gray-300 group-hover:text-gray-600" />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {gameState === 'playing' && selectionStep === 'compose' && selectedKit && (
-                        <div className="h-full flex flex-col md:flex-row">
-                          <div className="md:w-1/3 bg-gray-50 border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
-                            <button onClick={cancelSelection} className="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 mb-4"><ArrowLeft size={14} /> Back</button>
-                            <h4 className="font-bold text-gray-700 text-sm mb-3">Drugs</h4>
-                            <p className="text-xs text-gray-500 mb-4">Drag or tap <PlusCircle className="inline w-3 h-3"/> to add.</p>
-                            <div className="space-y-2">
-                              {DRUG_INVENTORY.map((drug, idx) => (
-                                <div key={idx} draggable onDragStart={(e) => handleDragStart(e, drug)} onClick={() => addDrugToTray(drug)} className="p-3 bg-white rounded-lg border border-gray-200 shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-400 hover:shadow-md transition flex items-center justify-between gap-2 group">
-                                  <div className="flex items-center gap-2"><GripVertical size={16} className="text-gray-400" /><span className="text-sm font-medium text-gray-700">{drug}</span></div><PlusCircle size={16} className="text-gray-300 group-hover:text-blue-500" />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="md:w-2/3 p-4 flex flex-col bg-slate-100/50" onDragOver={handleDragOver} onDrop={handleDrop}>
-                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 shadow-sm mb-4">
-                              <div className={`w-10 h-10 rounded-full ${selectedKit.color} flex items-center justify-center text-white font-bold text-[10px]`}>KIT</div>
-                              <div><span className="text-xs text-blue-600 font-bold block">Prescription For</span><span className="font-bold text-gray-800 text-sm">{selectedKit.name}</span></div>
-                            </div>
-                            <div className="flex-1 bg-white rounded-xl border-2 border-dashed border-gray-300 p-4 mb-4 overflow-y-auto relative min-h-[200px]">
-                               {timeLeft === 0 && <div className="absolute inset-0 bg-red-50/50 backdrop-blur-[1px] z-10 flex items-center justify-center pointer-events-none"><span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-bold border border-red-200">Time Bonus Expired!</span></div>}
-                               {trayItems.length === 0 ? <div className="h-full flex flex-col items-center justify-center text-gray-400"><Pill size={48} className="mb-2 opacity-20" /><p>Drag drugs here or tap in list.</p></div> : (
-                                 <div className="space-y-3">
-                                   {trayItems.map((item) => (
-                                     <div key={item.id} className="bg-blue-50 border border-blue-200 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div className="flex items-center gap-2"><Pill size={16} className="text-blue-600" /><span className="font-bold text-sm text-gray-800">{item.name}</span></div>
-                                        <div className="flex items-center gap-2">
-                                          <select value={item.duration} onChange={(e) => updateDuration(item.id, e.target.value)} className="text-xs p-2 rounded border border-gray-300 bg-white focus:border-blue-500 outline-none cursor-pointer">
-                                            {DURATION_OPTIONS.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
-                                          </select>
-                                          <button onClick={() => removeDrug(item.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={16} /></button>
-                                        </div>
-                                     </div>
-                                   ))}
-                                 </div>
-                               )}
-                            </div>
-                            <div className="bg-orange-50 p-3 rounded-lg border border-orange-200 mb-4 flex items-center justify-between">
-                               <div className="flex items-center gap-2"><Users className="text-orange-600" size={18} /><span className="text-sm font-bold text-orange-800">Partner Management?</span></div>
-                               <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" checked={partnerMgmt} onChange={(e) => setPartnerMgmt(e.target.checked)} className="sr-only peer" /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
-                            </div>
-                            <button onClick={handleSubmitPrescription} disabled={trayItems.length === 0} className={`w-full py-3 rounded-xl font-bold transition shadow-lg ${trayItems.length > 0 ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Sign Prescription</button>
-                          </div>
-                        </div>
-                      )}
-
-                      {gameState === 'feedback' && (
-                        <div className="h-full overflow-y-auto flex flex-col items-center justify-center text-center p-6">
-                          {feedback?.isCorrect ? <div className="text-green-500 mb-4 bg-green-50 p-4 rounded-full"><CheckCircle2 size={48} /></div> : <div className="text-red-500 mb-4 bg-red-50 p-4 rounded-full"><XCircle size={48} /></div>}
-                          <h2 className={`text-2xl font-bold mb-1 ${feedback?.isCorrect ? 'text-green-700' : 'text-red-700'}`}>{feedback?.message}</h2>
-                          <p className="text-sm text-gray-600 mb-4">{feedback?.subMessage}</p>
-                          <div className="bg-gray-50 rounded-lg p-4 w-full text-left mb-6 space-y-4">
-                            <div><p className="text-sm font-bold text-gray-500 uppercase mb-1">Diagnosis</p><p className="text-lg font-bold text-gray-800">{feedback?.diagnosis}</p></div>
-                            <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div className={`p-2 rounded border ${feedback.isKitCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>{feedback.isKitCorrect ? "✓ Kit Correct" : "✗ Kit Incorrect"}</div>
-                                <div className={`p-2 rounded border ${feedback.isComponentsCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>{feedback.isComponentsCorrect ? "✓ Rx Correct" : "✗ Rx Incorrect"}</div>
-                                <div className={`p-2 rounded border ${feedback.isPartnerCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>{feedback.isPartnerCorrect ? "✓ Partner Correct" : "✗ Partner Incorrect"}</div>
-                                <div className={`p-2 rounded border ${feedback.timeBonus > 0 ? 'bg-yellow-50 border-yellow-200 text-yellow-800 font-bold' : 'bg-gray-100 text-gray-400'}`}>{feedback.timeBonus > 0 ? "⚡ +10 Speed" : "Too Slow"}</div>
-                                {feedback.streakBonus > 0 && <div className="p-2 rounded border bg-orange-50 border-orange-200 text-orange-800 font-bold">🔥 +10 Streak</div>}
-                            </div>
-                            <div><p className="text-sm font-bold text-gray-500 uppercase mb-1">Explanation</p><p className="text-gray-700 text-sm leading-relaxed">{feedback?.details}</p></div>
-                            {!feedback?.isCorrect && <div className="text-xs bg-white border border-gray-200 p-3 rounded text-gray-500 space-y-2"><p className="font-bold text-gray-600 border-b pb-1">Correct Protocol for {KITS.find(k => k.id === currentPatient.correctKit).name}:</p><ul className="list-disc list-inside space-y-1">{feedback.correctComponents.map((c, i) => (<li key={i}>{c.name} - <span className="font-bold">{c.duration}</span></li>))}<li>Partner Mgmt: <span className="font-bold">{currentPatient.partnerRequired ? "Yes" : "No"}</span></li></ul></div>}
-                          </div>
-                          <button onClick={nextCase} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition">{currentPatientIndex + 1 < gamePatients.length ? 'Next Patient' : 'Finish Shift'}</button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <button className="flex-1 rounded-lg bg-amber-800 py-2.5 text-white hover:bg-amber-900 transition">
+                    Exit
+                  </button>
                 </div>
               </div>
             </div>
           );
         }
 
-        const root = createRoot(document.getElementById('root'));
-        root.render(<SyndromicGame />);
+        if (gameState === "menu") {
+          return (
+            <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans">
+              <div className="bg-white max-w-2xl w-full rounded-2xl shadow-xl overflow-hidden">
+                <div className="bg-blue-600 p-8 text-center">
+                  <div className="mx-auto bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mb-4">
+                    <HeartPulse size={40} className="text-white" />
+                  </div>
+                  <h1 className="text-4xl font-bold text-white mb-2">
+                    Syndromic Clinic
+                  </h1>
+                  <p className="text-blue-100 text-lg">
+                    Master STI/RTI Management Protocols
+                  </p>
+                </div>
+                <div className="p-8">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">
+                    Mission Briefing
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    You are the resident doctor. For each patient, follow the
+                    protocol:
+                  </p>
+                  <ul className="space-y-3 mb-6 text-gray-700">
+                    <li className="flex items-center gap-3">
+                      <ClipboardList className="text-blue-500" />{" "}
+                      <span>1. History & Examination</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <Pill className="text-blue-500" />{" "}
+                      <span>
+                        2. Select <strong>Kit</strong>
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <Clock className="text-blue-500" />{" "}
+                      <span>
+                        3. Compose <strong>Prescription</strong>
+                      </span>
+                    </li>
+                  </ul>
+                  <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 mb-6 text-sm">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-3">
+                      <span className="font-bold text-slate-700 uppercase tracking-wide">
+                        Total Attainable Score
+                      </span>
+                      <span className="font-black text-blue-600 text-2xl">
+                        1000 XP
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-slate-600">
+                      <div className="col-span-2 font-bold text-slate-800">
+                        Scoring Rules (Per Case):
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Perfect Diagnosis</span>{" "}
+                        <span className="font-bold text-green-600">100 XP</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Speed Bonus (&lt; 60s)</span>{" "}
+                        <span className="font-bold text-yellow-600">
+                          +10 XP
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Streak Bonus (3 in a row)</span>{" "}
+                        <span className="font-bold text-orange-600">
+                          +10 XP (Once)
+                        </span>
+                      </div>
+                      <div className="col-span-2 mt-2 font-bold text-slate-800 border-t border-slate-200 pt-2 text-xs uppercase tracking-wider">
+                        Partial Credit
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Correct Kit</span> <span>20 XP</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Correct Rx</span> <span>30 XP</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Partner Mgmt</span> <span>10 XP</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={startGame}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xl transition flex items-center justify-center gap-2"
+                  >
+                    Start Shift <ArrowRight />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        if (gameState === "summary") {
+          return (
+            <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+              <div className="bg-white max-w-lg w-full rounded-2xl shadow-xl p-8 text-center">
+                <Trophy size={64} className="mx-auto text-yellow-500 mb-6" />
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  Shift Complete!
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  You treated {gamePatients.length} patients.
+                </p>
+                <div className="bg-slate-50 rounded-xl p-6 mb-8">
+                  <span className="text-gray-500 uppercase text-sm font-bold tracking-wider">
+                    Final Score
+                  </span>
+                  <div className="text-5xl font-black text-blue-600 mt-2">
+                    {score} <span className="text-xl text-gray-400">XP</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setGameState("menu")}
+                  className="w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"
+                >
+                  <RefreshCw size={18} /> Return to Menu
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        const handleSignup = async () => {
+          const payload = {
+            user_name: formData.name,
+            user_email: formData.email,
+            user_password: formData.password,
+            user_number: formData.number,
+            user_address: formData.address,
+            user_profession: formData.profession,
+            user_institution: formData.institution,
+          };
+
+          try {
+            const response = await fetch(
+              "http://localhost:3030/api/users/register",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              },
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+              alert("Signup Successful ✅");
+              console.log(data);
+              setActiveModal(null);
+            } else {
+              alert(data.message || "Signup failed");
+            }
+          } catch (error) {
+            console.error("Signup error:", error);
+            alert("Something went wrong");
+          }
+        };
+        const handleChange = (e) => {
+          const { id, value } = e.target;
+
+          setFormData((prev) => ({
+            ...prev,
+            [id]: value,
+          }));
+        };
+
+        return (
+          <div className="min-h-screen bg-slate-100 p-2 md:p-6 flex flex-col">
+            {activeModal === "SUBSCRIBE" && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl">
+                  <h2 className="text-xl font-semibold text-amber-950">
+                    Access Restricted! 🚫
+                  </h2>
+
+                  <p className="mt-2 text-amber-900">
+                    To play ahead, you have to subscribe to the software.
+                  </p>
+
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      onClick={() =>
+                        (window.location.href =
+                          "https://nilanjana0509.github.io/Subscription-Module?gameName=syndromic clinic")
+                      }
+                      className="flex-1 rounded-lg bg-amber-900 py-2.5 text-white hover:bg-amber-950"
+                    >
+                      Subscribe
+                    </button>
+
+                    <button
+                      onClick={() => setActiveModal(null)}
+                      className="flex-1 rounded-lg bg-amber-800 py-2.5 text-white hover:bg-amber-900"
+                    >
+                      Exit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeModal === "SUBSCRIPTION" && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                // onClick={onExit}
+              >
+                <div
+                  className="w-[380px] rounded-2xl bg-white p-6 shadow-xl transition-all duration-200"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Header */}
+                  <h2 className="text-xl font-semibold text-amber-950">
+                    Choose Your Subscription 💳
+                  </h2>
+
+                  <p className="mt-2 text-sm text-amber-900">
+                    Select a plan to continue using the software. Click on the
+                    plan of your choice.
+                  </p>
+
+                  {/* Plans */}
+                  <div className="mt-5 space-y-3">
+                    {PLANS.map((plan) => (
+                      <div
+                        key={plan.id}
+                        // onClick={() => onSelectPlan(plan)}
+                        onClick={() => setActiveModal("SIGNUP")}
+                        className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 hover:border-amber-400 transition cursor-pointer"
+                      >
+                        <div>
+                          <p className="font-medium text-amber-950">
+                            {plan.title}
+                          </p>
+                          <p className="text-xs text-amber-800">Subscription</p>
+                        </div>
+
+                        <div className="text-lg font-semibold text-amber-900">
+                          {plan.displayPrice}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Exit Button */}
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      className="flex-1 rounded-lg bg-amber-800 py-2.5 text-white transition hover:bg-amber-900"
+                      // onClick={onExit}
+                    >
+                      Exit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeModal === "SIGNUP" && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div className="w-[480px] max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+                  <h2 className="text-xl font-semibold text-amber-950">
+                    Sign Up
+                  </h2>
+                  <p className="mt-2 text-amber-900">
+                    Create an account to get started.
+                  </p>
+
+                  <div className="mt-6 space-y-3">
+                    <input
+                      id="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Name"
+                      className="w-full rounded-lg border px-3 py-2 focus:border-amber-900 focus:ring-1 focus:ring-amber-900"
+                    />
+
+                    <input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="Email"
+                      className="w-full rounded-lg border px-3 py-2 focus:border-amber-900 focus:ring-1 focus:ring-amber-900"
+                    />
+
+                    <input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Password"
+                      className="w-full rounded-lg border px-3 py-2 focus:border-amber-900 focus:ring-1 focus:ring-amber-900"
+                    />
+
+                    <input
+                      id="number"
+                      value={formData.number}
+                      onChange={handleChange}
+                      placeholder="Mobile Number"
+                      className="w-full rounded-lg border px-3 py-2 focus:border-amber-900 focus:ring-1 focus:ring-amber-900"
+                    />
+
+                    <input
+                      id="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      placeholder="Address"
+                      className="w-full rounded-lg border px-3 py-2 focus:border-amber-900 focus:ring-1 focus:ring-amber-900"
+                    />
+
+                    <input
+                      id="profession"
+                      value={formData.profession}
+                      onChange={handleChange}
+                      placeholder="Profession / Student"
+                      className="w-full rounded-lg border px-3 py-2 focus:border-amber-900 focus:ring-1 focus:ring-amber-900"
+                    />
+
+                    <input
+                      id="institution"
+                      value={formData.institution}
+                      onChange={handleChange}
+                      placeholder="Institution / University"
+                      className="w-full rounded-lg border px-3 py-2 focus:border-amber-900 focus:ring-1 focus:ring-amber-900"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleSignup}
+                    className="mt-6 w-full rounded-lg bg-amber-900 py-2.5 font-medium text-white hover:bg-amber-950 disabled:opacity-50"
+                  >
+                    Sign up
+                  </button>
+
+                  <button
+                    // onClick={onClose}
+                    className="mt-3 w-full rounded-lg bg-gray-100 py-2 font-medium text-gray-700 hover:bg-gray-200"
+                  >
+                    Back
+                  </button>
+                </div>
+              </div>
+            )}
+            {showReference && <ReferenceCard />}
+            <header className="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b border-gray-200 sticky top-0 z-40 gap-4 md:gap-0">
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <User className="text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-gray-800">
+                    Case {currentPatientIndex + 1}/{gamePatients.length}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-gray-500">Dr. Student</p>
+                    {gameState === "playing" && streak > 0 && (
+                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                        <Flame size={10} /> Streak: {streak}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                {gameState === "playing" && (
+                  <div
+                    className={`flex items-center gap-2 px-3 py-1 rounded-lg border font-mono font-bold w-20 justify-center transition-all ${timeLeft < 10 ? "bg-red-50 text-red-600 border-red-200 animate-pulse" : "bg-gray-50 text-gray-700 border-gray-200"}`}
+                  >
+                    <Timer size={14} />
+                    <span>
+                      {Math.floor(timeLeft / 60)}:
+                      {(timeLeft % 60).toString().padStart(2, "0")}
+                    </span>
+                  </div>
+                )}
+                <button
+                  onClick={() => setShowReference(true)}
+                  className="text-blue-600 font-semibold text-sm flex items-center gap-1 hover:bg-blue-50 px-3 py-1 rounded-lg transition"
+                >
+                  <BookOpen size={16} /> Ref
+                </button>
+                <div className="bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-100">
+                  <span className="font-bold text-yellow-700">{score} XP</span>
+                </div>
+              </div>
+            </header>
+
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
+              <div className="lg:col-span-5 space-y-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="bg-slate-800 text-white p-4 flex justify-between items-start">
+                    <div className="flex gap-4">
+                      <div className="w-16 h-16 bg-slate-600 rounded-full flex items-center justify-center text-2xl font-bold">
+                        {currentPatient.name[0]}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">
+                          {currentPatient.name}
+                        </h3>
+                        <div className="flex gap-3 text-sm text-slate-300 mt-1">
+                          <span>{currentPatient.age} yrs</span>
+                          <span>•</span>
+                          <span>{currentPatient.gender}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Thermometer className="text-slate-400" />
+                  </div>
+                  <div className="p-6">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                      Chief Complaint
+                    </h4>
+                    <p className="text-lg text-gray-800 font-medium bg-red-50 p-3 rounded-lg border-l-4 border-red-400 italic">
+                      "{currentPatient.complaint}"
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <ClipboardList className="text-blue-600" />
+                    <h3 className="font-bold text-gray-800">History Taking</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {currentPatient.history.map((item, idx) => (
+                      <div key={idx} className="transition-all">
+                        <button
+                          onClick={() => handleRevealHistory(idx)}
+                          disabled={
+                            gameState !== "playing" &&
+                            !historyRevealed.includes(idx)
+                          }
+                          className={`w-full text-left p-3 rounded-lg border transition flex justify-between items-center ${historyRevealed.includes(idx) ? "bg-blue-50 border-blue-200 text-blue-900" : "bg-white border-gray-200 text-gray-600 hover:border-blue-300"}`}
+                        >
+                          <span className="font-medium">Q: {item.q}</span>
+                          {!historyRevealed.includes(idx) && (
+                            <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">
+                              Ask
+                            </span>
+                          )}
+                        </button>
+                        {historyRevealed.includes(idx) && (
+                          <div className="ml-4 mt-2 p-3 bg-gray-50 border-l-2 border-gray-300 text-gray-700 italic text-sm">
+                            " {item.a} "
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-8 border-t pt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Stethoscope className="text-purple-600" />
+                      <h3 className="font-bold text-gray-800">
+                        Physical Examination
+                      </h3>
+                    </div>
+                    {!examRevealed ? (
+                      <button
+                        onClick={() => setExamRevealed(true)}
+                        className="w-full py-4 border-2 border-dashed border-purple-200 rounded-xl text-purple-600 font-bold hover:bg-purple-50 transition"
+                      >
+                        Perform Examination
+                      </button>
+                    ) : (
+                      <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 text-purple-900">
+                        <div className="flex gap-3">
+                          <AlertCircle className="shrink-0 mt-1" size={20} />
+                          <div>
+                            <span className="font-bold block mb-1">
+                              Findings:
+                            </span>
+                            {currentPatient.exam}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:col-span-7 flex flex-col h-full min-h-[500px]">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden">
+                  <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Pill className="text-green-600" />
+                      <h3 className="font-bold text-gray-800">
+                        Treatment Plan
+                      </h3>
+                    </div>
+                    <span className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
+                      {gameState === "playing"
+                        ? selectionStep === "kit"
+                          ? "Step 1: Select Kit"
+                          : "Step 2: Compose Rx"
+                        : "Review"}
+                    </span>
+                  </div>
+                  <div className="flex-1 overflow-hidden relative">
+                    {gameState === "playing" && selectionStep === "kit" && (
+                      <div className="p-4 overflow-y-auto h-full space-y-2">
+                        <p className="text-sm text-gray-500 mb-2">
+                          Select the appropriate Color-Coded Kit:
+                        </p>
+                        <div className="grid grid-cols-1 gap-2">
+                          {KITS.map((kit) => (
+                            <button
+                              key={kit.id}
+                              onClick={() => handleKitSelect(kit)}
+                              className="w-full group flex items-center p-3 rounded-xl border border-gray-200 hover:border-gray-400 hover:shadow-md transition bg-white text-left"
+                            >
+                              <div
+                                className={`w-12 h-12 shrink-0 rounded-full ${kit.color} ${kit.hover} shadow-sm mr-4 flex items-center justify-center text-white font-bold text-xs`}
+                              >
+                                KIT
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-bold text-gray-800 group-hover:text-blue-700">
+                                  {kit.name}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {kit.syndrome}
+                                </div>
+                              </div>
+                              <ArrowRight
+                                size={16}
+                                className="text-gray-300 group-hover:text-gray-600"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {gameState === "playing" &&
+                      selectionStep === "compose" &&
+                      selectedKit && (
+                        <div className="h-full flex flex-col md:flex-row">
+                          <div className="md:w-1/3 bg-gray-50 border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
+                            <button
+                              onClick={cancelSelection}
+                              className="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 mb-4"
+                            >
+                              <ArrowLeft size={14} /> Back
+                            </button>
+                            <h4 className="font-bold text-gray-700 text-sm mb-3">
+                              Drugs
+                            </h4>
+                            <p className="text-xs text-gray-500 mb-4">
+                              Drag or tap{" "}
+                              <PlusCircle className="inline w-3 h-3" /> to add.
+                            </p>
+                            <div className="space-y-2">
+                              {DRUG_INVENTORY.map((drug, idx) => (
+                                <div
+                                  key={idx}
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, drug)}
+                                  onClick={() => addDrugToTray(drug)}
+                                  className="p-3 bg-white rounded-lg border border-gray-200 shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-400 hover:shadow-md transition flex items-center justify-between gap-2 group"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <GripVertical
+                                      size={16}
+                                      className="text-gray-400"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">
+                                      {drug}
+                                    </span>
+                                  </div>
+                                  <PlusCircle
+                                    size={16}
+                                    className="text-gray-300 group-hover:text-blue-500"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div
+                            className="md:w-2/3 p-4 flex flex-col bg-slate-100/50"
+                            onDragOver={handleDragOver}
+                            onDrop={handleDrop}
+                          >
+                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100 shadow-sm mb-4">
+                              <div
+                                className={`w-10 h-10 rounded-full ${selectedKit.color} flex items-center justify-center text-white font-bold text-[10px]`}
+                              >
+                                KIT
+                              </div>
+                              <div>
+                                <span className="text-xs text-blue-600 font-bold block">
+                                  Prescription For
+                                </span>
+                                <span className="font-bold text-gray-800 text-sm">
+                                  {selectedKit.name}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex-1 bg-white rounded-xl border-2 border-dashed border-gray-300 p-4 mb-4 overflow-y-auto relative min-h-[200px]">
+                              {timeLeft === 0 && (
+                                <div className="absolute inset-0 bg-red-50/50 backdrop-blur-[1px] z-10 flex items-center justify-center pointer-events-none">
+                                  <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-bold border border-red-200">
+                                    Time Bonus Expired!
+                                  </span>
+                                </div>
+                              )}
+                              {trayItems.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                                  <Pill size={48} className="mb-2 opacity-20" />
+                                  <p>Drag drugs here or tap in list.</p>
+                                </div>
+                              ) : (
+                                <div className="space-y-3">
+                                  {trayItems.map((item) => (
+                                    <div
+                                      key={item.id}
+                                      className="bg-blue-50 border border-blue-200 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <Pill
+                                          size={16}
+                                          className="text-blue-600"
+                                        />
+                                        <span className="font-bold text-sm text-gray-800">
+                                          {item.name}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <select
+                                          value={item.duration}
+                                          onChange={(e) =>
+                                            updateDuration(
+                                              item.id,
+                                              e.target.value,
+                                            )
+                                          }
+                                          className="text-xs p-2 rounded border border-gray-300 bg-white focus:border-blue-500 outline-none cursor-pointer"
+                                        >
+                                          {DURATION_OPTIONS.map((opt) => (
+                                            <option key={opt} value={opt}>
+                                              {opt}
+                                            </option>
+                                          ))}
+                                        </select>
+                                        <button
+                                          onClick={() => removeDrug(item.id)}
+                                          className="text-red-400 hover:text-red-600 p-1"
+                                        >
+                                          <Trash2 size={16} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div className="bg-orange-50 p-3 rounded-lg border border-orange-200 mb-4 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Users className="text-orange-600" size={18} />
+                                <span className="text-sm font-bold text-orange-800">
+                                  Partner Management?
+                                </span>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={partnerMgmt}
+                                  onChange={(e) =>
+                                    setPartnerMgmt(e.target.checked)
+                                  }
+                                  className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                              </label>
+                            </div>
+                            <button
+                              onClick={handleSubmitPrescription}
+                              disabled={trayItems.length === 0}
+                              className={`w-full py-3 rounded-xl font-bold transition shadow-lg ${trayItems.length > 0 ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                            >
+                              Sign Prescription
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                    {gameState === "feedback" && (
+                      <div className="h-full overflow-y-auto flex flex-col items-center justify-center text-center p-6">
+                        {feedback?.isCorrect ? (
+                          <div className="text-green-500 mb-4 bg-green-50 p-4 rounded-full">
+                            <CheckCircle2 size={48} />
+                          </div>
+                        ) : (
+                          <div className="text-red-500 mb-4 bg-red-50 p-4 rounded-full">
+                            <XCircle size={48} />
+                          </div>
+                        )}
+                        <h2
+                          className={`text-2xl font-bold mb-1 ${feedback?.isCorrect ? "text-green-700" : "text-red-700"}`}
+                        >
+                          {feedback?.message}
+                        </h2>
+                        <p className="text-sm text-gray-600 mb-4">
+                          {feedback?.subMessage}
+                        </p>
+                        <div className="bg-gray-50 rounded-lg p-4 w-full text-left mb-6 space-y-4">
+                          <div>
+                            <p className="text-sm font-bold text-gray-500 uppercase mb-1">
+                              Diagnosis
+                            </p>
+                            <p className="text-lg font-bold text-gray-800">
+                              {feedback?.diagnosis}
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div
+                              className={`p-2 rounded border ${feedback.isKitCorrect ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
+                            >
+                              {feedback.isKitCorrect
+                                ? "✓ Kit Correct"
+                                : "✗ Kit Incorrect"}
+                            </div>
+                            <div
+                              className={`p-2 rounded border ${feedback.isComponentsCorrect ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
+                            >
+                              {feedback.isComponentsCorrect
+                                ? "✓ Rx Correct"
+                                : "✗ Rx Incorrect"}
+                            </div>
+                            <div
+                              className={`p-2 rounded border ${feedback.isPartnerCorrect ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
+                            >
+                              {feedback.isPartnerCorrect
+                                ? "✓ Partner Correct"
+                                : "✗ Partner Incorrect"}
+                            </div>
+                            <div
+                              className={`p-2 rounded border ${feedback.timeBonus > 0 ? "bg-yellow-50 border-yellow-200 text-yellow-800 font-bold" : "bg-gray-100 text-gray-400"}`}
+                            >
+                              {feedback.timeBonus > 0
+                                ? "⚡ +10 Speed"
+                                : "Too Slow"}
+                            </div>
+                            {feedback.streakBonus > 0 && (
+                              <div className="p-2 rounded border bg-orange-50 border-orange-200 text-orange-800 font-bold">
+                                🔥 +10 Streak
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-500 uppercase mb-1">
+                              Explanation
+                            </p>
+                            <p className="text-gray-700 text-sm leading-relaxed">
+                              {feedback?.details}
+                            </p>
+                          </div>
+                          {!feedback?.isCorrect && (
+                            <div className="text-xs bg-white border border-gray-200 p-3 rounded text-gray-500 space-y-2">
+                              <p className="font-bold text-gray-600 border-b pb-1">
+                                Correct Protocol for{" "}
+                                {
+                                  KITS.find(
+                                    (k) => k.id === currentPatient.correctKit,
+                                  ).name
+                                }
+                                :
+                              </p>
+                              <ul className="list-disc list-inside space-y-1">
+                                {feedback.correctComponents.map((c, i) => (
+                                  <li key={i}>
+                                    {c.name} -{" "}
+                                    <span className="font-bold">
+                                      {c.duration}
+                                    </span>
+                                  </li>
+                                ))}
+                                <li>
+                                  Partner Mgmt:{" "}
+                                  <span className="font-bold">
+                                    {currentPatient.partnerRequired
+                                      ? "Yes"
+                                      : "No"}
+                                  </span>
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={nextCase}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition"
+                        >
+                          {currentPatientIndex + 1 < gamePatients.length
+                            ? "Next Patient"
+                            : "Finish Shift"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function LandingPage() {
+        return (
+          <div
+            id="landing-page"
+            class="min-h-screen flex items-center justify-center"
+          >
+            <div class="bg-white p-10 rounded-3xl shadow-2xl text-center">
+              <img
+                src="./company-logo.jpg"
+                alt="Landing Image"
+                class="w-64 md:w-96 mx-auto object-contain"
+              />
+            </div>
+          </div>
+        );
+      }
+
+      function App() {
+        const [showGame, setShowGame] = React.useState(false);
+
+        React.useEffect(() => {
+          const timer = setTimeout(() => {
+            setShowGame(true);
+          }, 3000); // 3 seconds
+
+          return () => clearTimeout(timer);
+        }, []);
+
+        return showGame ? <SyndromicGame /> : <LandingPage />;
+      }
+      const root = createRoot(document.getElementById("root"));
+      root.render(<App />);
     </script>
-</body>
+  </body>
 </html>
